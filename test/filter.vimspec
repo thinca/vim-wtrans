@@ -1,0 +1,74 @@
+Describe filter
+  Describe wtrans#filter#split_a_word()
+    Context when the input has two or more words
+      It does nothing
+        Assert Equals(wtrans#filter#split_a_word('hello world'), 'hello world')
+      End
+    End
+    Context when the input has a single words
+      Context when the word is camelCase
+        It splits the word to two or more words
+          Assert Equals(wtrans#filter#split_a_word('helloWorld'), 'hello world')
+        End
+      End
+      Context when the word is snake_case
+        It splits the word to two or more words
+          Assert Equals(wtrans#filter#split_a_word('hello_world'), 'hello world')
+        End
+      End
+      Context when the word is kebab-case
+        It splits the word to two or more words
+          Assert Equals(wtrans#filter#split_a_word('hello-world'), 'hello world')
+        End
+      End
+    End
+  End
+
+  Describe wtrans#filter#shrink_whitespace()
+    It shrinks two or more whitespaces to a single space
+      Assert Equals(wtrans#filter#shrink_whitespace('to  be  text'), 'to be text')
+    End
+  End
+
+  Describe wtrans#filter#remove_commentstring()
+    Context when 'commentstring' is empty
+      Before each
+        setlocal commentstring=
+      End
+      It does nothing
+        Assert Equals(wtrans#filter#remove_commentstring('# foo'), '# foo')
+      End
+    End
+
+    Context when 'commentstring' is set
+      Before each
+        setlocal commentstring=#%s
+      End
+      It removes comment mark
+        Assert Equals(wtrans#filter#remove_commentstring('# foo'), ' foo')
+      End
+    End
+  End
+
+  Describe wtrans#filter#remove_help_marks()
+    Context when filetype of current buffer is not "help"
+      Before each
+        setlocal filetype=
+      End
+      It does nothing
+        Assert Equals(wtrans#filter#remove_help_marks('*wtrans.vim*'), '*wtrans.vim*')
+        Assert Equals(wtrans#filter#remove_help_marks('|wtrans.vim|'), '|wtrans.vim|')
+      End
+    End
+
+    Context when filetype of current buffer is "help"
+      Before each
+        setlocal filetype=help
+      End
+      It removes help mark
+        Assert Equals(wtrans#filter#remove_help_marks('*wtrans.vim*'), 'wtrans.vim')
+        Assert Equals(wtrans#filter#remove_help_marks('|wtrans.vim|'), 'wtrans.vim')
+      End
+    End
+  End
+End

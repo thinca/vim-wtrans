@@ -1,0 +1,222 @@
+*wtrans.txt*	Translate via wtrans command
+
+Version: 1.0.0
+Author : thinca <thinca+vim@gmail.com>
+License: zlib License
+
+==============================================================================
+CONTENTS					*wtrans-contents*
+
+INTRODUCTION			|wtrans-introduction|
+USAGE				|wtrans-usage|
+INTERFACE			|wtrans-interface|
+  COMMANDS			  |wtrans-commands|
+  FUNCTIONS			  |wtrans-functions|
+  KEY MAPPINGS			  |wtrans-key-mappings|
+CUSTOMIZING			|wtrans-customizing|
+  FILTER			  |wtrans-filter|
+CHANGELOG			|wtrans-changelog|
+
+
+
+==============================================================================
+INTRODUCTION					*wtrans-introduction*
+
+*wtrans.vim* is a Vim plugin to translate texts by wtrans command.
+
+Requirements:
+- Vim 8.0 or later
+- wtrans 1.0.0 or later
+  - `npm install -g wtrans`
+
+Optional:
+- |operator-user| 0.1.0 or later
+  - https://github.com/kana/vim-operator-user
+  - |wtrans-operators| is available if you install this.
+
+Latest version:
+https://github.com/thinca/vim-wtrans
+
+
+
+==============================================================================
+USAGE						*wtrans-usage*
+
+First, you must install `wtrans` command.  You can use npm to install this.
+>
+	npm install -g wtrans
+<
+And setup the `wtrans.yaml` file.  See the document of `wtrans` for detail.
+
+You can check `wtrans` command is available:
+>
+	echo hello | wtrans
+<
+The translated text was shown?  OK.  You can use |wtrans.vim|.
+Let's try |:Wtrans| command.
+>
+	:Wtrans hello
+<
+You can see translated text.
+
+
+
+==============================================================================
+INTERFACE					*wtrans-interface*
+
+------------------------------------------------------------------------------
+COMMANDS					*wtrans-commands*
+
+						*:Wtrans*
+:[range]Wtrans[!] [options] [text]
+	Translates [text] or texts in buffer of [range].
+	With [!], the background agent will be restarted.
+
+	[options] is form of `--option-name=value`.
+
+	--from={lang}
+		Specify language of source text.
+		Automatically detected by `wtrans` command if omitted.
+	--to={lang}
+		Specify language of result text.
+		Automatically detected by `wtrans` command if omitted.
+	--output={place}
+		Specify the place to output a result.
+		This is one of the followings:
+		echomsg
+			Outputs a result via |:echomsg| command.  Default.
+		buffer
+			Outputs a result to a special buffer.
+		interactive
+			Opens a source buffer.
+			If you update the source buffer, the result buffer is
+			opened and updated.
+	--service={service}
+		Specify service name for `wtrans` command.
+
+------------------------------------------------------------------------------
+FUNCTIONS					*wtrans-functions*
+
+wtrans#translate({text} [, {options}])		*wtrans#translate()*
+	Translates {text} and returns the result.
+	{options} is a |Dictionary| which contains the following items:
+
+	from
+		Specify language of source text.
+		Automatically detected by `wtrans` command if omitted.
+	to
+		Specify language of result text.
+		Automatically detected by `wtrans` command if omitted.
+	service
+		Specify service name for `wtrans` command.
+	callback
+		If this is specified, this function sends a request and return
+		immediately don't wait a result.
+		And the specified callback function is called when a result is
+		returned.
+		The callback function takes one argument that is a response
+		message from `wtrans` command.  It has been decoded from JSON.
+
+wtrans#apply_filters({text})			*wtrans#apply_filters()*
+	Returns a filtered text.
+	See |wtrans-filter| about filter in wtrans.vim.
+
+
+------------------------------------------------------------------------------
+KEY MAPPINGS					*wtrans-key-mappings*
+
+					*wtrans-operators*
+These are available if you install |operator-user|.
+https://github.com/kana/vim-operator-user
+
+<Plug>(operator-wtrans-echomsg){motion}	*<Plug>(operator-wtrans-echomsg)*
+	Translates a given textobj, and |:echomsg| the result.
+
+<Plug>(operator-wtrans-replace){motion}	*<Plug>(operator-wtrans-replace)*
+	Translates a given textobj, and replace the original text by the
+	result.
+
+<Plug>(operator-wtrans-buffer){motion}	*<Plug>(operator-wtrans-buffer)*
+	Translates a given textobj, and output to a special buffer.
+
+
+
+==============================================================================
+CUSTOMIZING					*wtrans-customizing*
+
+g:wtrans#command				*g:wtrans#command*
+	A command name or path to `wtrans` command.
+	When you set $PATH correctly, this will work well by default.
+	Default is `wtrans`, or `wtrans.cmd` in MS Windows.
+
+g:wtrans#buffer#config				*g:wtrans#buffer#config*
+	A |Dictionary| to customize buffer.  This may have the followings:
+
+	"opener"
+	Way to open a new window.  This is one of followings:
+	- A command as |String|.
+	- A |Funcref| to open a window.
+	  This |Funcref| receives {bufname} as first argument.
+	- A |String| that starts with "=".
+	  This is treated as |expr|, and result is an opener.
+
+g:wtrans#preload				*g:wtrans#preload*
+	If you set this variable to TRUE, this plugin starts a `wtrans` job on
+	Vim startup.
+
+g:wtrans#source_filters				*g:wtrans#source_filters*
+	An array of filter functions.  An element is function name or
+	|Funcref|.
+	Filters are applied in order.
+	See |wtrans-filter| for details.
+	Default is empty array(`[]`).
+
+------------------------------------------------------------------------------
+FILTER						*wtrans-filter*
+
+The source text in buffer often contains noises.
+
+- Comment out mark
+- Part of identifier
+- Some extra whitespaces
+
+Wtrans.vim converts input text by filter in some situations.
+
+	- Operators
+	  - |<Plug>(operator-wtrans-echomsg)|
+	  - |<Plug>(operator-wtrans-replace)|
+	  - |<Plug>(operator-wtrans-buffer)|
+	- |:Wtrans| command with ranges
+
+You can set zero or more filters by |g:wtrans#source_filters| variable.
+A filter is a function that takes a text as argument and returns the converted
+text.
+Followings are builtin filter functions.  Of course you can define new
+filters.
+
+*wtrans#filter#split_a_word*
+	When the input text is one word(does not contain blanks), this filter
+	guess the word is identifier in program.
+	And the identifier split out to words.
+
+*wtrans#filter#shrink_whitespace*
+	Two or more whitespaces(includes line breaks) are replaced by a single
+	space.
+
+*wtrans#filter#remove_commentstring*
+	Removes comment string specified by 'commentstring' option.
+
+*wtrans#filter#remove_help_marks*
+	When the filetype of current buffer is "help", removes `|` and `*`.
+
+
+
+==============================================================================
+CHANGELOG					*wtrans-changelog*
+
+1.0.0	2017-11-23
+	- Initial version.
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl
