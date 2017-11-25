@@ -10,6 +10,12 @@ Describe filter
         It splits the word to two or more words
           Assert Equals(wtrans#filter#split_a_word('helloWorld'), 'hello world')
         End
+
+        Context that contains large words
+          It treats large word as one word
+            Assert Equals(wtrans#filter#split_a_word('getYAMLFile'), 'get YAML file')
+          End
+        End
       End
       Context when the word is snake_case
         It splits the word to two or more words

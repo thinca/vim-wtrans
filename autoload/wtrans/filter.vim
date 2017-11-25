@@ -8,11 +8,12 @@ function! wtrans#filter#split_a_word(text) abort
     return a:text
   endif
   let s = a:text
-  let s = substitute(s, '\(\l\)\(\u\)', '\1 \2', 'g')
+  let s = substitute(s, '\(^\|\l\)\(\u\{1,}\)\(\u\)', '\1 \2 \l\3', 'g')
+  let s = substitute(s, '\(\l\)\(\u\)', '\1 \l\2', 'g')
   let s = substitute(s, '[_-]', ' ', 'g')
   let s = substitute(s, '\u\{2,}', '\0 ', 'g')
   let s = substitute(s, '\s\+', ' ', 'g')
-  let s = substitute(tolower(s), '^\s*\|\s*$', '', 'g')
+  let s = substitute(s, '^\s*\|\s*$', '', 'g')
   let s = substitute(s, '[^.]\zs\n', '', 'g')
   return s
 endfunction
