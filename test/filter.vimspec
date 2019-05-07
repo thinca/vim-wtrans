@@ -54,6 +54,15 @@ Describe filter
         Assert Equals(wtrans#filter#remove_commentstring('# foo'), ' foo')
       End
     End
+
+    Context when 'commentstring' contains other %
+      Before each
+        setlocal commentstring=<%#%s%>
+      End
+      It ignores other %
+        Assert Equals(wtrans#filter#remove_commentstring('<%#foo%>'), 'foo')
+      End
+    End
   End
 
   Describe wtrans#filter#remove_help_marks()

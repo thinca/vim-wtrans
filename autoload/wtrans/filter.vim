@@ -26,7 +26,7 @@ function! wtrans#filter#remove_commentstring(text) abort
   if empty(&l:commentstring)
     return a:text
   endif
-  let comment = printf('\V' . &l:commentstring, '\v(.{-})\V')
+  let comment = '\V' . substitute(&l:commentstring, '%s', '\\v(.{-})\\V', '')
   return substitute(a:text, comment, '\1', 'g')
 endfunction
 
